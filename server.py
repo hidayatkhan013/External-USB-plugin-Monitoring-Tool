@@ -2,6 +2,27 @@ import socket
 import sys,os
 import pickle
 from database import *
+from _thread import *
+
+
+ThreadCount = 0
+def multi_threaded_client(connection):
+    while True:
+        try:
+            connection.send(str.encode('Server is Up:'))
+            responce=connection.recv(1024)
+        except Exception as msg:
+            global ThreadCount
+            ThreadCount -= 1
+            print(msg)
+        if not connection.recv(1024):
+            break    
+        data=pickle.loads(responce)
+        print(data)
+        main_db(data)
+
+        # connection.sendall(str.encode(response))
+    connection.close()
 
 
 # creating socket
@@ -18,7 +39,7 @@ def bindSocket(socket):
         print(f"Binding the Port : {port}")
         socket.bind((host,port))
         print("listening......")
-        socket.listen(2)
+        socket.listen(10)
     except socket.error as msg:
         print(msg)
         print("Retrying.........")
@@ -29,13 +50,12 @@ def acceptConn(socket):
     while True:
         conn,adrss=socket.accept()
         print(f"Connected to : {adrss[0]} : {adrss[1]}")
-        responce=conn.recv(1024)
-        data=pickle.loads(responce)
-        print(data)
-        main_db(data)
+        start_new_thread(multi_threaded_client, (conn, ))
+        global ThreadCount
+        ThreadCount += 1
+        print('Thread Number: ' + str(ThreadCount))
 
-
-
+    socket.close()
 
 
 
@@ -46,6 +66,5 @@ if __name__ == "__main__":
     socket=createSocket()
     bindSocket(socket)
     acceptConn(socket)
-    
     os.system("pause")
     
