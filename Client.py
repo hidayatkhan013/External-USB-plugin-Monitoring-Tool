@@ -2,7 +2,6 @@ import socket
 import socket
 import getpass
 import subprocess
-import re, uuid,os
 from time import sleep
 import pickle
 import psutil
@@ -37,23 +36,26 @@ def getHostName():
 def getWorkgroup():
     return subprocess.run(["powershell.exe", "(Get-CimInstance Win32_ComputerSystem).Domain"], stdout=subprocess.PIPE, text=True).stdout.strip()
 
-connectClient=establishConnection()
-while True:
-    username=getUserName()
-    hostname = getHostName()
-    workgroup = getWorkgroup()
-    ip_host=getHostIp()
-    mac= getMacAdress(ip_host)
-    print("Host name : ",hostname)
-    print("User name : ",username)
-    print("Ip : ",ip_host)
-    print("MAC : ",mac)
-    print("Domain : ",workgroup)
-    lst=[hostname,username,ip_host,mac,workgroup]
-    data1=pickle.dumps(lst)
-    connectClient.send(data1)
-    dataFromServer = connectClient.recv(1024)
-    print(dataFromServer.decode())
-    sleep(10)
-connectClient.close()
+
+if __name__ == "__main__":
+    connectClient=establishConnection()
+    while True:
+        username=getUserName()
+        hostname = getHostName()
+        workgroup = getWorkgroup()
+        ip_host=getHostIp()
+        mac= getMacAdress(ip_host)
+        # print("Host name : ",hostname)
+        # print("User name : ",username)
+        # print("Ip : ",ip_host)
+        # print("MAC : ",mac)
+        # print("Domain : ",workgroup)
+        lst=[hostname,username,ip_host,mac,workgroup]
+        data1=pickle.dumps(lst)
+        connectClient.send(data1)
+        dataFromServer = connectClient.recv(1024)
+        print(dataFromServer.decode())
+        sleep(10)
+
+    connectClient.close()
 

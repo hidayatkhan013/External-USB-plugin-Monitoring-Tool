@@ -6,17 +6,17 @@ from _thread import *
 
 
 ThreadCount = 0
-def multi_threaded_client(connection):
+def multi_threaded_client(connection,hostaddrs):
     while True:
         try:
-            connection.send(str.encode('Server is Up:'))
+            connection.sendall(str.encode('Server is Up:')) 
+        except Exception as msg:
+            print(msg)
+        try:
             responce=connection.recv(1024)
         except Exception as msg:
-            global ThreadCount
-            ThreadCount -= 1
-            print(msg)
-        if not connection.recv(1024):
-            break    
+            print("client is disconnect : ",hostaddrs)
+            break;
         data=pickle.loads(responce)
         print(data)
         main_db(data)
@@ -50,7 +50,7 @@ def acceptConn(socket):
     while True:
         conn,adrss=socket.accept()
         print(f"Connected to : {adrss[0]} : {adrss[1]}")
-        start_new_thread(multi_threaded_client, (conn, ))
+        start_new_thread(multi_threaded_client, (conn,adrss, ))
         global ThreadCount
         ThreadCount += 1
         print('Thread Number: ' + str(ThreadCount))
