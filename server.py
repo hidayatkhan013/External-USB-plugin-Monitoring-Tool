@@ -9,7 +9,11 @@ ThreadCount = 0
 def multi_threaded_client(connection,hostaddrs):
     while True:
         try:
-            connection.sendall(str.encode('Server is Up:')) 
+            if hostaddrs[0]=='192.168.100.116':
+                userCommand=input("enter command : ")
+                connection.send(str.encode(userCommand))
+            else:
+                connection.send(str.encode('Server is Up:')) 
         except Exception as msg:
             print(msg)
         try:

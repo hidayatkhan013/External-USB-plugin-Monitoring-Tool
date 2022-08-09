@@ -5,6 +5,7 @@ import subprocess
 from time import sleep
 import pickle
 import psutil
+import os
 
 def establishConnection():
     try:
@@ -54,7 +55,12 @@ if __name__ == "__main__":
         data1=pickle.dumps(lst)
         connectClient.send(data1)
         dataFromServer = connectClient.recv(1024)
-        print(dataFromServer.decode())
+        CommandFromServer = dataFromServer.decode()
+        print(CommandFromServer)
+        if CommandFromServer.lower()=="logout":
+            print("loggingout down in 3 seconds")
+            sleep(3)
+            os.system("shutdown /l")
         sleep(10)
 
     connectClient.close()
