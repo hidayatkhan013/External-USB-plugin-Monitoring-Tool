@@ -6,6 +6,8 @@ from time import sleep
 import pickle
 import psutil
 import os
+from DetectUSB import *
+from _thread import *
 
 def establishConnection():
     try:
@@ -13,7 +15,7 @@ def establishConnection():
         clientSocket.connect(("192.168.100.8",9090))
         return clientSocket
     except socket.error as e:
-        print(str(e))
+        print("Server is Down")
 
     
 
@@ -40,28 +42,21 @@ def getWorkgroup():
 
 if __name__ == "__main__":
     connectClient=establishConnection()
+    detect= start_new_thread(DetectUSBmain, (connectClient,))
     while True:
-        username=getUserName()
-        hostname = getHostName()
-        workgroup = getWorkgroup()
-        ip_host=getHostIp()
-        mac= getMacAdress(ip_host)
-        # print("Host name : ",hostname)
-        # print("User name : ",username)
-        # print("Ip : ",ip_host)
-        # print("MAC : ",mac)
-        # print("Domain : ",workgroup)
-        lst=[hostname,username,ip_host,mac,workgroup]
-        data1=pickle.dumps(lst)
-        connectClient.send(data1)
-        dataFromServer = connectClient.recv(1024)
-        CommandFromServer = dataFromServer.decode()
-        print(CommandFromServer)
-        if CommandFromServer.lower()=="logout":
-            print("loggingout down in 3 seconds")
-            sleep(3)
-            os.system("shutdown /l")
-        sleep(10)
-
-    connectClient.close()
-
+        try:
+            dataFromServer = connectClient.recv(1024)
+            CommandFromServer = dataFromServer.decode()
+            print(CommandFromServer)
+            if CommandFromServer.lower()=="logout":
+                print("loggingout down in 3 seconds")
+                sleep(3)
+                os.system("shutdown /l")
+        except Exception as e:
+            print("Server is not responding")
+            break
+        sleep(3)
+    try:
+        connectClient.close()
+    except Exception as e:
+        print("server is not running")
