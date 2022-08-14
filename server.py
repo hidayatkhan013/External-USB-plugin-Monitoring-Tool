@@ -1,8 +1,10 @@
+import imp
 import socket
 import sys,os
 import pickle
 from database import *
 from _thread import *
+import _thread
 
 import logging
 import logging.handlers
@@ -30,17 +32,23 @@ def multi_threaded_client(connection,hostaddrs):
             #     connection.send(str.encode(userCommand))
             connection.sendall(str.encode('Server is Up:')) 
         except Exception as msg:
-            logging.exception(msg)
+            logging.warning(msg)
         try:
             responce=connection.recv(1024)
         except Exception as msg:
-            logging.exception("client is disconnect : ",hostaddrs)
-            break;
+            print("client is disconnect : ",hostaddrs)
+            logging.warning(f"Client is disconnect  : {hostaddrs[0]} : {hostaddrs[1]}")
+            global ThreadCount
+            ThreadCount -= 1
+            _thread.exit()
+            break 
         data=pickle.loads(responce)
-        # print(data)
         logging.info(data)
-        if len(data)>50:
-            main_db(data)
+        # print(data,len(data),type(data))
+        if type(data)==list or len(data)>40:
+            print(data)
+            if type(data)==list:
+                main_db(data)
 
         # connection.sendall(str.encode(response))
     connection.close()
@@ -62,7 +70,7 @@ def bindSocket(socket):
         print("listening......")
         socket.listen(10)
     except socket.error as msg:
-        logging.exception(msg)
+        logging.warning(msg)
         print(msg)
         print("Retrying.........")
         bindSocket(socket)
@@ -74,6 +82,7 @@ def acceptConn(socket):
         print(f"Connected to : {adrss[0]} : {adrss[1]}")
         logging.warning(f"Connected to : {adrss[0]} : {adrss[1]}")
         start_new_thread(multi_threaded_client, (conn,adrss, ))
+        print()
         global ThreadCount
         ThreadCount += 1
         print('Thread Number: ' + str(ThreadCount))
